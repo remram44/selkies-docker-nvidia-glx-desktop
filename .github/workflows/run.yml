@@ -1,0 +1,32 @@
+name: Run
+
+on:
+  push:
+  schedule:
+    - cron: "34 5 * * 3"
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          $HOME/.local/bin/poetry config virtualenvs.create false
+      - name: Install dependencies
+        run: $HOME/.local/bin/poetry install --no-interaction
+      - name: Install crane
+        run: |
+          curl -Lo /tmp/crane.tar.gz https://github.com/google/go-containerregistry/releases/download/v0.15.2/go-containerregistry_Linux_x86_64.tar.gz
+          sudo tar -zxf /tmp/crane.tar.gz -C /usr/local/bin crane
+      - name: Login to GitHub Container Registry
+        run: docker login ghcr.io -u $user -p $password
+        env:
+          user: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run archiver
+        run: $HOME/.local/bin/poetry run python archiver.py ghcr.io/selkies-project/nvidia-glx-desktop ghcr.io/remram44/selkies-docker-nvidia-glx-desktop
