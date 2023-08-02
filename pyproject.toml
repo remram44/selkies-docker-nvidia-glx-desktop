@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "github-image-archiver"
+version = "0.1.0"
+description = "Copies Docker images from another repository, dating them"
+authors = ["Remi Rampin <remi@rampin.org>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4"
+requests = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
