@@ -2,6 +2,7 @@ name: Run
 
 on:
   push:
+  workflow_dispatch:
   schedule:
     - cron: "34 5 * * 3"
 
