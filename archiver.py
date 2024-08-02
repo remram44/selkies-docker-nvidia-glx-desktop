@@ -60,7 +60,9 @@ class DockerApiClient(object):
         return res.json()['tags']
 
     def get_manifest(self, repository, tag):
-        headers = {}
+        headers = {
+            'Accept': 'application/vnd.oci.image.index.v1+json',
+        }
         if self.token is not None:
             headers['Authorization'] = 'Bearer %s' % self.token
         url = 'https://%s/v2/%s/%s/manifests/%s' % (
