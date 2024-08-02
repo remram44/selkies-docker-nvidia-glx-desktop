@@ -23,25 +23,34 @@ class DockerApiClient(object):
         if m is None:
             res.raise_for_status()
         scope = 'repository:%s/%s:%s' % (repository[1], repository[2], what)
-        res = requests.get(
-            m.group(1) + '?' + urlencode({
-                'service': m.group(2),
-                'scope': scope,
-            }),
-        )
+        url = m.group(1) + '?' + urlencode({
+            'service': m.group(2),
+            'scope': scope,
+        })
+        logger.info("Getting token for %s: GET %s", repository, url)
+        res = requests.get(url)
         res.raise_for_status()
+        logger.info("%d got token", res.status_code)
         return res.json()['token']
 
     def list_tags(self, repository):
         headers = {}
         if self.token is not None:
             headers['Authorization'] = 'Bearer %s' % self.token
+        url = 'https://%s/v2/%s/%s/tags/list' % (
+            repository[0], repository[1], repository[2],
+        )
+        logger.info(
+            "Getting list of tags for %s: GET %s token=%s",
+            '/'.join(repository),
+            url,
+            'yes' if self.token else 'no',
+        )
         res = requests.get(
-            'https://%s/v2/%s/%s/tags/list' % (
-                repository[0], repository[1], repository[2],
-            ),
+            url,
             headers=headers,
         )
+        logger.info("%d", res.status_code)
         if self.token is None and res.status_code == 401:
             self.token = self.get_token(res, repository)
             return self.list_tags(repository)
@@ -54,12 +63,21 @@ class DockerApiClient(object):
         headers = {}
         if self.token is not None:
             headers['Authorization'] = 'Bearer %s' % self.token
+        url = 'https://%s/v2/%s/%s/manifests/%s' % (
+            repository[0], repository[1], repository[2], tag,
+        )
+        logger.info(
+            "Getting manifest for %s:%s: GET %s token=%s",
+            '/'.join(repository),
+            tag,
+            url,
+            'yes' if self.token else 'no',
+        )
         res = requests.get(
-            'https://%s/v2/%s/%s/manifests/%s' % (
-                repository[0], repository[1], repository[2], tag,
-            ),
+            url,
             headers=headers,
         )
+        logger.info("%d", res.status_code)
         if self.token is None and res.status_code == 401:
             self.token = self.get_token(res, repository)
             return self.list_tags(repository)
